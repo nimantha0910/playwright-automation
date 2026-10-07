@@ -15,9 +15,8 @@ test.describe('Login', () => {
   test('logs in with valid credentials', async ({ page }) => {
     await login(page, USERNAME, PASSWORD);
 
-    // Success: the sign-in form is gone (we've left the login page)
-    await expect(page.getByPlaceholder('Enter your password')).toBeHidden({ timeout: 15000 });
-    await expect(page.getByRole('button', { name: 'Sign In' })).toBeHidden();
+    await expect(page).toHaveURL(/dashboard/);
+    await expect(page.getByText('Dashboard')).toBeVisible();
   });
 
   test('shows an error with invalid credentials', async ({ page }) => {
