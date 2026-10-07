@@ -17,14 +17,30 @@ test.describe('Login', () => {
 
     await expect(page).toHaveURL(/dashboard/);
     await expect(page.getByText('Dashboard')).toBeVisible();
+
+    await page.waitForTimeout(5000);
   });
 
   test('shows an error with invalid credentials', async ({ page }) => {
     await login(page, USERNAME, 'wrong-password');
 
-    // Failure: we are still on the sign-in form
+    
     await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
     await expect(page.getByPlaceholder('Enter your password')).toBeVisible();
 
   });
+
+  test('opens a campaign report from the dashboard', async ({ page }) => {
+  await login(page, USERNAME, PASSWORD);
+
+  // 1. Dashboard -> click "View Reports"
+  await page.getByRole('button', { name: /View Reports/i }).click();
+  await expect(page.getByRole('heading', { name: 'Recruitment Reports' })).toBeVisible();
+
+  // 2. Click the eye icon on the first campaign row
+  const firstRow = page.getByRole('row').nth(1); // row 0 is the table header
+  await firstRow.locator('button, a').last().click();
+});
+
+
 });
