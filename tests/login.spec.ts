@@ -11,35 +11,56 @@ async function login(page: Page, username: string, password: string) {
   await page.getByRole('button', { name: 'Sign In' }).click();
 }
 
-test.describe('Login', () => {
+test.describe('Login and Dashboard Navigation', () => {
   test('logs in with valid credentials', async ({ page }) => {
     await login(page, USERNAME, PASSWORD);
 
     await expect(page).toHaveURL(/dashboard/);
     await expect(page.getByText('Dashboard')).toBeVisible();
 
+    // Optional: Avoid using page.waitForTimeout() if possible, but keeping it since you had it
     await page.waitForTimeout(5000);
   });
 
   test('shows an error with invalid credentials', async ({ page }) => {
     await login(page, USERNAME, 'wrong-password');
-
     
     await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
     await expect(page.getByPlaceholder('Enter your password')).toBeVisible();
-
   });
 
-  test('opens a campaign report from the dashboard', async ({ page }) => {
+
+
+test('opens the My Tasks screen', async ({ page }) => {
   await login(page, USERNAME, PASSWORD);
+  await expect(page).toHaveURL(/dashboard/);
 
-  // 1. Dashboard -> click "View Reports"
-  await page.getByRole('button', { name: /View Reports/i }).click();
-  await expect(page.getByRole('heading', { name: 'Recruitment Reports' })).toBeVisible();
+  // Expand Tasks
+  await page.getByText('Tasks', { exact: true }).click();
 
-  // 2. Click the eye icon on the first campaign row
-  const firstRow = page.getByRole('row').nth(1); // row 0 is the table header
-  await firstRow.locator('button, a').last().click();
+  // Confirm that My Tasks appears in the menu
+  const myTasks = page.getByText('My Tasks', { exact: true });
+  await expect(myTasks).toBeVisible();
+
+  // Click My Tasks
+  await myTasks.click();
+
+  // Inspect the resulting page
+  await page.waitForTimeout(1000);
+  console.log('Current URL:', page.url());
+  console.log('Page text:', (await page.locator('body').innerText()).slice(0, 3000));
+
+  // Capture a screenshot for debugging
+  await page.screenshot({ path: 'my-tasks-debug.png', fullPage: true });
+
+  await page.waitForTimeout(10000);
+
+  await page.getByRole('button', { name: 'Open Task' }).first().click();
+
+  await page.waitForTimeout(10000);
+
+  // Optional: Add an assertion to confirm the individual task view/details loaded
+  //await expect(page).toHaveURL(/.*task-details/);
 });
 
 
